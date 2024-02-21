@@ -1,12 +1,65 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.model.js";
+import { Video} from "../models/video.model.js"
 import { ApiError } from "../utils/ApiError.js";
 import { uploadCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import mongoose from "mongoose"
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
     const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    if(!videoId) throw new ApiError(404,"No videoId found.")
+
+    const {page = 1, mylimit = 10} = req.query
+    console.log(req.query)
+    console.log(page,mylimit)
+
+
+    const video =  await Video.findById(videoId);
+
+    if(!video) throw new ApiError(404,"Video id is wrong.")
+
+    const videoComments = await Video.aggregate([
+        {
+            $match:{
+                _id : new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup:{
+                from: "comments",
+                localField: "_id",
+                foreignField: "video",
+                as: "videoComments",
+                pipeline:[
+                    {
+                        $project:{
+                            content: 1
+                        }
+                    },
+                    {
+                        $limit: mylimit
+                    }
+                ]
+            }
+        },
+        {
+            $project:{
+                videoComments:1
+            }
+        },
+        {
+            $skip: (page - 1) * mylimit
+        },
+        {
+            $limit: mylimit
+        }    
+    ])
+
+    if(!videoComments) throw new ApiError(404,"Video id is wrong.")
+
+    res.status(200).json(new ApiResponse(200,{videoComments},"Comments of video has been recived."));
+
 
 })
 
@@ -51,7 +104,7 @@ const updateComment = asyncHandler(async (req, res) => {
     if(!updatedComment) throw new ApiError(400,"Comment is not created please check requiredd field video id and comment ");
 
 
-    res.status(200).json(new ApiResponse(200,{updatedComment},"Comment has been created."))
+    res.status(200).json(new ApiResponse(200,{updatedComment},"Comment has been created."));
 })
 
 const deleteComment = asyncHandler(async (req, res) => {

@@ -32,7 +32,7 @@ app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/playlist", playlistRouter);
-app.use("/api/v1/aubscription", subscriptionRouter);
+app.use("/api/v1/subscription", subscriptionRouter);
 app.use("/api/v1/video", videoRouter
 );
 
