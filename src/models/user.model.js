@@ -36,6 +36,7 @@ const userSchema = mongoose.Schema(
             type: String,
             required: [true, "Please provide password"],
             max: [5, "Password must have 5 characters or more"],
+            // select:false to not select this password fie;d in response
         },
         watchHistory: [
             {
